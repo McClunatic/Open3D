@@ -52,11 +52,7 @@ RUN yum install -y \
     pkg-config
 
 # Dependencies: build essentials
-RUN yum install -y \
-    gcc \
-    gcc-c++ \
-    gcc-fortran \
-    make
+RUN yum groupinstall "Development Tools"
 
 # Prepare yum repo for Intel OneAPI in case necessary
 RUN tee > /etc/yum.repos.d/oneAPI.repo << EOF
@@ -141,10 +137,8 @@ RUN git clone --depth 1 https://github.com/isl-org/Open3D-ML.git ${OPEN3D_ML_ROO
 COPY . /root/Open3D
 WORKDIR /root/Open3D
 
-# TODO: Resume conversion here
-
 # Open3D C++ dependencies
-RUN ./util/install_deps_ubuntu.sh assume-yes
+RUN ./util/install_deps_centos.sh
 
 # Open3D Python dependencies
 RUN source util/ci_utils.sh \
@@ -156,10 +150,8 @@ RUN source util/ci_utils.sh \
  && pip install -r python/requirements_test.txt
 
 # Open3D Jupyter dependencies
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
- && apt-get install -y nodejs \
- && rm -rf /var/lib/apt/lists/* \
- && node --version \
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+RUN nvm install 16 \
  && npm install -g yarn \
  && yarn --version
 
@@ -178,7 +170,8 @@ RUN if [ "${BUILD_PYTORCH_OPS}" = "ON" ] || [ "${BUILD_TENSORFLOW_OPS}" = "ON" ]
     fi \
  && mkdir build \
  && cd build \
- && cmake -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS} \
+ && scl enable llvm-toolset-7 cmake \
+          -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS} \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} \
           -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} \
