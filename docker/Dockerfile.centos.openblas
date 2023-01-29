@@ -15,26 +15,17 @@ RUN if [ -z "${CONDA_SUFFIX}"    ]; then echo "Error: ARG CONDA_SUFFIX    not sp
  && if [ -z "${PYTHON_VERSION}"  ]; then echo "Error: ARG PYTHON_VERSION  not specified."; exit 1; fi \
  && if [ -z "${DEVELOPER_BUILD}" ]; then echo "Error: ARG DEVELOPER_BUILD not specified."; exit 1; fi
 
-# Prevent interactive inputs when installing packages
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=America/Los_Angeles
-ENV SUDO=command
-
 # Minimal dependencies for running Docker
 # wget    : for downloading
-# libgl1  : available on Ubuntu ARM desktop by default
-# libgomp1: available on Ubuntu ARM desktop by default
-RUN apt-get update && apt-get install -y \
+# mesa-libGL
+# libgomp
+RUN yum install -y \
     wget \
-    libgl1 \
-    libgomp1 \
- && rm -rf /var/lib/apt/lists/*
+    mesa-libGL \
+    libgomp
 
 # Minimal dependencies for building
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    git \
- && rm -rf /var/lib/apt/lists/*
+RUN yum groupinstall -y "Development Tools"
 
 # Miniconda
 ENV PATH="/root/miniconda3/bin:${PATH}"
@@ -58,9 +49,8 @@ ENV PATH=${HOME}/${CMAKE_VERSION}/bin:${PATH}
 
 # Install dependencies before copying the full Open3D directory for better Docker caching
 # Open3D C++ dependencies
-COPY ./util/install_deps_ubuntu.sh /root/Open3D/util/
-RUN /root/Open3D/util/install_deps_ubuntu.sh assume-yes \
- && rm -rf /var/lib/apt/lists/*
+COPY ./util/install_deps_centos.sh /root/Open3D/util/
+RUN /root/Open3D/util/install_deps_centos.sh
 RUN echo ${PATH} \
  && echo "gcc=$(which gcc)" \
  && gcc --version \
@@ -83,7 +73,7 @@ WORKDIR /root/Open3D
 # Build
 RUN mkdir build \
  && cd build \
- && cmake \
+ && scl enable llvm-toolset-7 cmake \
     -DBUILD_UNIT_TESTS=ON \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=~/open3d_install \
