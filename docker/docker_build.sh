@@ -167,6 +167,27 @@ openblas_build() {
               && chown $(id -u):$(id -g) /opt/mount/*.whl"
 }
 
+centos_openblas_build() {
+    export BASE_IMAGE=centos:7
+    openblas_print_env
+
+    pushd "${HOST_OPEN3D_ROOT}"
+    docker build \
+        --progress plain \
+        --build-arg BASE_IMAGE="${BASE_IMAGE}" \
+        --build-arg CONDA_SUFFIX="${CONDA_SUFFIX}" \
+        --build-arg CMAKE_VERSION="${CMAKE_VERSION}" \
+        --build-arg PYTHON_VERSION="${PYTHON_VERSION}" \
+        --build-arg DEVELOPER_BUILD="${DEVELOPER_BUILD}" \
+        -t "${DOCKER_TAG}" \
+        -f docker/Dockerfile.centos.openblas .
+    popd
+
+    docker run -v "${PWD}:/opt/mount" --rm "${DOCKER_TAG}" \
+        bash -c "cp /*.whl /opt/mount \
+              && chown $(id -u):$(id -g) /opt/mount/*.whl"
+}
+
 cuda_wheel_build() {
     BASE_IMAGE=nvidia/cuda:11.6.2-cudnn8-devel-ubuntu18.04
     CCACHE_TAR_NAME=open3d-ubuntu-1804-cuda-ci-ccache
@@ -491,6 +512,40 @@ function main() {
     openblas-amd64-py310)
         openblas_export_env amd64 py310
         openblas_build
+        ;;
+
+    # CentOS OpenBLAS AMD64
+    centos-openblas-amd64-py37-dev)
+        openblas_export_env amd64 py37 dev
+        centos_openblas_build
+        ;;
+    centos-openblas-amd64-py38-dev)
+        openblas_export_env amd64 py38 dev
+        centos_openblas_build
+        ;;
+    centos-openblas-amd64-py39-dev)
+        openblas_export_env amd64 py39 dev
+        centos_openblas_build
+        ;;
+    centos-openblas-amd64-py310-dev)
+        openblas_export_env amd64 py310 dev
+        centos_openblas_build
+        ;;
+    centos-openblas-amd64-py37)
+        openblas_export_env amd64 py37
+        centos_openblas_build
+        ;;
+    centos-openblas-amd64-py38)
+        openblas_export_env amd64 py38
+        centos_openblas_build
+        ;;
+    centos-openblas-amd64-py39)
+        openblas_export_env amd64 py39
+        centos_openblas_build
+        ;;
+    centos-openblas-amd64-py310)
+        openblas_export_env amd64 py310
+        centos_openblas_build
         ;;
 
     # OpenBLAS ARM64
