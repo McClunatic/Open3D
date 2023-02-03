@@ -1,0 +1,48 @@
+--- third_party/glslang/CMakeLists.txt       2023-02-02 13:43:07.191242437 +0000
++++ third_party/glslang/CMakeLists.txt       2023-02-02 13:43:16.221241590 +0000
+@@ -147,7 +147,7 @@
+
+ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
+     add_compile_options(-Wall -Wmaybe-uninitialized -Wuninitialized -Wunused -Wunused-local-typedefs
+-                        -Wunused-parameter -Wunused-value  -Wunused-variable -Wunused-but-set-parameter -Wunused-but-set-variable -fno-exceptions)
++                        -Wunused-parameter -Wunused-value  -Wunused-variable -Wunused-but-set-parameter -fno-exceptions)
+     add_compile_options(-Wno-reorder)  # disable this from -Wall, since it happens all over.
+     if(NOT ENABLE_RTTI)
+         add_compile_options(-fno-rtti)
+--- filament/backend/src/opengl/PlatformEGLHeadless.cpp    2023-02-02 13:34:05.411303945 +0000
++++ filament/backend/src/opengl/PlatformEGLHeadless.cpp    2023-02-02 13:28:59.461337962 +0000
+@@ -52,6 +52,34 @@
+ }
+ using namespace glext;
+
++// typedefs missing from CentOS EGL/egl.h
++typedef unsigned int EGLBoolean;
++typedef void *EGLDisplay;
++typedef void *EGLSurface;
++typedef void *EGLContext;
++typedef int32_t EGLint;
++typedef void *EGLConfig;
++typedef void *EGLNativeDisplayType;
++typedef void *EGLNativeWindowType;
++
++typedef EGLDisplay (EGLAPIENTRYP PFNEGLGETDISPLAYPROC) (EGLNativeDisplayType display_id);
++typedef EGLBoolean (EGLAPIENTRYP PFNEGLINITIALIZEPROC) (EGLDisplay dpy, EGLint *major, EGLint *minor);
++typedef const char *(EGLAPIENTRYP PFNEGLQUERYSTRINGPROC) (EGLDisplay dpy, EGLint name);
++typedef EGLBoolean (EGLAPIENTRYP PFNEGLCHOOSECONFIGPROC) (EGLDisplay dpy, const EGLint *attrib_list, EGLConfig *configs, EGLint config_size, EGLint *num_config);
++typedef EGLSurface (EGLAPIENTRYP PFNEGLCREATEPBUFFERSURFACEPROC) (EGLDisplay dpy, EGLConfig config, const EGLint *attrib_list);
++typedef EGLBoolean (EGLAPIENTRYP PFNEGLBINDAPIPROC) (EGLenum api);
++typedef EGLContext (EGLAPIENTRYP PFNEGLCREATECONTEXTPROC) (EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint *attrib_list);
++typedef EGLBoolean (EGLAPIENTRYP PFNEGLMAKECURRENTPROC) (EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx);
++typedef EGLBoolean (EGLAPIENTRYP PFNEGLSWAPBUFFERSPROC) (EGLDisplay dpy, EGLSurface surface);
++typedef EGLBoolean (EGLAPIENTRYP PFNEGLDESTROYSURFACEPROC) (EGLDisplay dpy, EGLSurface surface);
++typedef EGLBoolean (EGLAPIENTRYP PFNEGLDESTROYCONTEXTPROC) (EGLDisplay dpy, EGLContext ctx);
++typedef EGLBoolean (EGLAPIENTRYP PFNEGLTERMINATEPROC) (EGLDisplay dpy);
++typedef EGLBoolean (EGLAPIENTRYP PFNEGLRELEASETHREADPROC) (void);
++typedef EGLSurface (EGLAPIENTRYP PFNEGLCREATEWINDOWSURFACEPROC) (EGLDisplay dpy, EGLConfig config, EGLNativeWindowType win, const EGLint *attrib_list);
++typedef EGLBoolean (EGLAPIENTRYP PFNEGLSURFACEATTRIBPROC) (EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint value);
++typedef EGLint (EGLAPIENTRYP PFNEGLGETERRORPROC) (void);
++typedef __eglMustCastToProperFunctionPointerType (EGLAPIENTRYP PFNEGLGETPROCADDRESSPROC) (const char *procname);
++
+ // Stores EGL function pointers and a handle to the system's EGL library
+ struct EGLFunctions
+ {
