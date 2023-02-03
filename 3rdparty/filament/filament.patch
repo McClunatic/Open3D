@@ -1,3 +1,14 @@
+--- third_party/spirv-tools/CMakeLists.txt      2021-04-05 20:51:25.000000000 +0000
++++ third_party/spirv-tools/CMakeLists.txt      2023-02-03 15:25:05.699778359 +0000
+@@ -94,7 +94,7 @@
+
+ option(SPIRV_BUILD_FUZZER "Build spirv-fuzz" OFF)
+
+-option(SPIRV_WERROR "Enable error on warning" ON)
++option(SPIRV_WERROR "Enable error on warning" OFF)
+ if(("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU") OR (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") AND (NOT CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")))
+   set(COMPILER_IS_LIKE_GNU TRUE)
+ endif()
 --- third_party/glslang/CMakeLists.txt       2023-02-02 13:43:07.191242437 +0000
 +++ third_party/glslang/CMakeLists.txt       2023-02-02 13:43:16.221241590 +0000
 @@ -147,7 +147,7 @@
