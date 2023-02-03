@@ -1257,6 +1257,25 @@ if(BUILD_GUI)
                 if(clang_version MATCHES "clang version ([0-9]+)")
                     set(CLANG_LIBDIR "/usr/lib/llvm-${CMAKE_MATCH_1}/lib")
                 endif()
+                # For centos builds, llvm is installed by spack and a view is placed in
+                # /spack/var/spack/environments/spackenv/.spack-env/view
+                if (NOT EXISTS CLANG_LIBDIR)
+                    set(centos_default_llvm_lib_dirs
+                        /spack/var/spack/environments/spackenv/.spack-env/view/lib
+                        /spack/var/spack/environments/spackenv/.spack-env/view/lib64
+                        /spack/var/spack/environments/spackenv/.spack-env/view/lib/x86_64-unknown-linux-gnu
+                    )
+                    foreach(llvm_lib_dir in ${centos_default_llvm_lib_dirs})
+                        message(STATUS "Searching ${llvm_lib_dir} for libc++ and libc++abi")
+                        find_library(CPP_LIBRARY    c++    PATHS ${llvm_lib_dir} NO_DEFAULT_PATH)
+                        find_library(CPPABI_LIBRARY c++abi PATHS ${llvm_lib_dir} NO_DEFAULT_PATH)
+                        if (CPP_LIBRARY AND CPPABI_LIBRARY)
+                            set(CLANG_LIBDIR ${llvm_lib_dir})
+                            message(STATUS "CLANG_LIBDIR found in centos-default: ${CLANG_LIBDIR}")
+                            break()
+                        endif()
+                    endforeach()
+                endif()
             endif()
             include(${Open3D_3RDPARTY_DIR}/filament/filament_build.cmake)
         else()
@@ -1311,6 +1330,27 @@ if(BUILD_GUI)
                     if (CPP_LIBRARY AND CPPABI_LIBRARY)
                         set(CLANG_LIBDIR ${llvm_lib_dir})
                         message(STATUS "CLANG_LIBDIR found in ubuntu-default: ${CLANG_LIBDIR}")
+                        break()
+                    endif()
+                endforeach()
+            endif()
+
+            # For centos builds, llvm is installed by spack and a view is placed in
+            # /spack/var/spack/environments/spackenv/.spack-env/view
+            # LLVM version must be >= 7 to compile Filament.
+            if (NOT CLANG_LIBDIR)
+                set(centos_default_llvm_lib_dirs
+                    /spack/var/spack/environments/spackenv/.spack-env/view/lib
+                    /spack/var/spack/environments/spackenv/.spack-env/view/lib64
+                    /spack/var/spack/environments/spackenv/.spack-env/view/lib/x86_64-unknown-linux-gnu
+                )
+                foreach(llvm_lib_dir in ${centos_default_llvm_lib_dirs})
+                    message(STATUS "Searching ${llvm_lib_dir} for libc++ and libc++abi")
+                    find_library(CPP_LIBRARY    c++    PATHS ${llvm_lib_dir} NO_DEFAULT_PATH)
+                    find_library(CPPABI_LIBRARY c++abi PATHS ${llvm_lib_dir} NO_DEFAULT_PATH)
+                    if (CPP_LIBRARY AND CPPABI_LIBRARY)
+                        set(CLANG_LIBDIR ${llvm_lib_dir})
+                        message(STATUS "CLANG_LIBDIR found in centos-default: ${CLANG_LIBDIR}")
                         break()
                     endif()
                 endforeach()
