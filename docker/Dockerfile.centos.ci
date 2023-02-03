@@ -49,6 +49,7 @@ RUN yum install -y \
     git  \
     wget \
     curl \
+    which \
     pkg-config
 
 # Dependencies: build essentials
@@ -140,6 +141,12 @@ WORKDIR /root/Open3D
 # Open3D C++ dependencies
 RUN ./util/install_deps_centos.sh
 
+# Install remaining dependencies (GCC 11 and LLVM 15) using Spack
+RUN ./util/install_deps_spack.sh
+ENV PATH=/spack/var/spack/environments/spackenv/.spack-env/view/bin:${PATH}
+ENV LD_LIBRARY_PATH=/spack/var/spack/environments/spackenv/.spack-env/view/lib:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH=/spack/var/spack/environments/spackenv/.spack-env/view/lib64:${LD_LIBRARY_PATH}
+
 # Open3D Python dependencies
 RUN source util/ci_utils.sh \
  && if [ "${BUILD_CUDA_MODULE}" = "ON" ]; then \
@@ -170,12 +177,13 @@ RUN if [ "${BUILD_PYTORCH_OPS}" = "ON" ] || [ "${BUILD_TENSORFLOW_OPS}" = "ON" ]
     fi \
  && mkdir build \
  && cd build \
- && scl enable llvm-toolset-7 cmake \
+ && cmake \
           -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS} \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} \
           -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} \
           -DBUILD_SYCL_MODULE=${BUILD_SYCL_MODULE} \
+          -DBUILD_FILAMENT_FROM_SOURCE=ON \
           -DDEVELOPER_BUILD=${DEVELOPER_BUILD} \
           -DBUILD_LIBREALSENSE=ON \
           -DBUILD_CUDA_MODULE=${BUILD_CUDA_MODULE} \

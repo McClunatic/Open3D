@@ -17,10 +17,12 @@ RUN if [ -z "${CONDA_SUFFIX}"    ]; then echo "Error: ARG CONDA_SUFFIX    not sp
 
 # Minimal dependencies for running Docker
 # wget    : for downloading
+# which   : for checking install locations
 # mesa-libGL
 # libgomp
 RUN yum install -y \
     wget \
+    which \
     mesa-libGL \
     libgomp
 
@@ -51,6 +53,14 @@ ENV PATH=${HOME}/${CMAKE_VERSION}/bin:${PATH}
 # Open3D C++ dependencies
 COPY ./util/install_deps_centos.sh /root/Open3D/util/
 RUN /root/Open3D/util/install_deps_centos.sh
+
+# Install remaining dependencies (GCC 11 and LLVM 15) using Spack
+COPY ./util/install_deps_spack.sh /root/Open3D/util/
+RUN /root/Open3D/util/install_deps_spack.sh
+ENV PATH=/spack/var/spack/environments/spackenv/.spack-env/view/bin:${PATH}
+ENV LD_LIBRARY_PATH=/spack/var/spack/environments/spackenv/.spack-env/view/lib:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH=/spack/var/spack/environments/spackenv/.spack-env/view/lib64:${LD_LIBRARY_PATH}
+
 RUN echo ${PATH} \
  && echo "gcc=$(which gcc)" \
  && gcc --version \
@@ -70,13 +80,16 @@ RUN which python \
 COPY . /root/Open3D
 WORKDIR /root/Open3D
 
-# Build
+# Build using Spack GNU compilers
+ENV CC=/spack/var/spack/environments/spackenv/.spack-env/view/bin/gcc
+ENV CXX=/spack/var/spack/environments/spackenv/.spack-env/view/bin/g++
 RUN mkdir build \
  && cd build \
- && scl enable llvm-toolset-7 cmake \
+ && cmake \
     -DBUILD_UNIT_TESTS=ON \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=~/open3d_install \
+    -DBUILD_FILAMENT_FROM_SOURCE=ON \
     -DDEVELOPER_BUILD=${DEVELOPER_BUILD} \
     .. \
  && make -j$(nproc) \
