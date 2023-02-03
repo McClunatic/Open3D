@@ -9,17 +9,6 @@
  if(("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU") OR (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") AND (NOT CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")))
    set(COMPILER_IS_LIKE_GNU TRUE)
  endif()
---- third_party/glslang/CMakeLists.txt       2023-02-02 13:43:07.191242437 +0000
-+++ third_party/glslang/CMakeLists.txt       2023-02-02 13:43:16.221241590 +0000
-@@ -147,7 +147,7 @@
-
- if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
-     add_compile_options(-Wall -Wmaybe-uninitialized -Wuninitialized -Wunused -Wunused-local-typedefs
--                        -Wunused-parameter -Wunused-value  -Wunused-variable -Wunused-but-set-parameter -Wunused-but-set-variable -fno-exceptions)
-+                        -Wunused-parameter -Wunused-value  -Wunused-variable -Wunused-but-set-parameter -fno-exceptions)
-     add_compile_options(-Wno-reorder)  # disable this from -Wall, since it happens all over.
-     if(NOT ENABLE_RTTI)
-         add_compile_options(-fno-rtti)
 --- filament/backend/src/opengl/PlatformEGLHeadless.cpp    2023-02-02 13:34:05.411303945 +0000
 +++ filament/backend/src/opengl/PlatformEGLHeadless.cpp    2023-02-02 13:28:59.461337962 +0000
 @@ -52,6 +52,34 @@
