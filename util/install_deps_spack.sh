@@ -18,5 +18,5 @@ spack add gcc@11.3.0+binutils^binutils@2.39+ld
 spack install -j $procs
 
 spack compiler find
-spack add ninja@1.11.1%gcc@11.3.0 llvm@15.0.7%gcc@11.3.0
+spack add patchelf%gcc@11.3.0 ninja@1.11.1%gcc@11.3.0 llvm@15.0.7%gcc@11.3.0
 spack install -j $procs

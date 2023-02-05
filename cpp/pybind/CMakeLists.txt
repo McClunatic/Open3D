@@ -82,9 +82,24 @@ set_target_properties(pybind PROPERTIES
 # eg: libc++.so and libc++abi.so (needed by filament) for Linux.
 # libc++.so is a linker script including libc++.so.1 and libc++abi.so, so append 1 to libc++.so
 set(PYTHON_EXTRA_LIBRARIES "")
+set(PYTHON_EXTRA_COMPILER_LIBRARIES "")
 if (BUILD_GUI AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
     list(APPEND PYTHON_EXTRA_LIBRARIES ${CPP_LIBRARY}.1 ${CPPABI_LIBRARY}
         ${MESA_CPU_GL_LIBRARY})
+    # Add dependencies added by GCC 11 not resident on CentOS 7 by default
+    if (LINUX_OS MATCHES "centos")
+        list(APPEND PYTHON_EXTRA_COMPILER_LIBRARIES
+            /spack/var/spack/environments/spackenv/.spack-env/view/lib64/libgomp.so.1
+            /spack/var/spack/environments/spackenv/.spack-env/view/lib64/libstdc++.so.6
+            /spack/var/spack/environments/spackenv/.spack-env/view/lib64/libgcc_s.so.1
+            /spack/var/spack/environments/spackenv/.spack-env/view/lib64/libatomic.so.1)
+        find_program(PATCHELF patchelf
+            PATHS /spack/var/spack/environments/spackenv/.spack-env/view/bin
+            REQUIRED)
+        add_custom_command(TARGET pybind POST_BUILD
+            COMMAND bash -c "${PATCHELF} --force-rpath --set-rpath '$ORIGIN/../compiler.libs' $<TARGET_FILE:pybind>"
+            COMMENT "Updating pybind to use packaged GCC 11 libraries")
+    endif()
 endif()
 if (WITH_OPENMP AND APPLE AND NOT BUILD_SHARED_LIBS)
 # Package libomp v11.1.0, if it is not installed. Later version cause crash on
@@ -196,6 +211,7 @@ add_custom_target(python-package
             -DPYTHON_VERSION=${PYTHON_VERSION}
             "-DCOMPILED_MODULE_PATH_LIST=${COMPILED_MODULE_PATH_LIST}"
             "-DPYTHON_EXTRA_LIBRARIES=${PYTHON_EXTRA_LIBRARIES}"
+            "-DPYTHON_EXTRA_COMPILER_LIBRARIES=${PYTHON_EXTRA_COMPILER_LIBRARIES}"
             -DBUILD_JUPYTER_EXTENSION=${BUILD_JUPYTER_EXTENSION}
             -DBUILD_TENSORFLOW_OPS=${BUILD_TENSORFLOW_OPS}
             -DBUILD_PYTORCH_OPS=${BUILD_PYTORCH_OPS}
