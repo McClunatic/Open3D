@@ -266,6 +266,16 @@ project(Open3D
     LANGUAGES C CXX)
 message(STATUS "Open3D ${OPEN3D_VERSION_FULL}")
 
+# Capture specific Linux OS
+set(LINUX_OS "")
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+    execute_process(
+        COMMAND bash "-c" "source /etc/os-release && echo $ID"
+        OUTPUT_VARIABLE LINUX_OS
+    )
+endif()
+message(STATUS "Linux OS: ${LINUX_OS}")
+
 # Check SYCL compatiblility
 if (BUILD_SYCL_MODULE AND NOT CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
     message(FATAL_ERROR "BUILD_SYCL_MODULE requires IntelLLVM (DPC++) compiler, "
