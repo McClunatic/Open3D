@@ -97,7 +97,7 @@ if (BUILD_GUI AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
             PATHS /spack/var/spack/environments/spackenv/.spack-env/view/bin
             REQUIRED)
         add_custom_command(TARGET pybind POST_BUILD
-            COMMAND bash -c "${PATCHELF} --force-rpath --set-rpath '$ORIGIN/../compiler.libs' $<TARGET_FILE:pybind>"
+            COMMAND ${PATCHELF} --force-rpath --set-rpath '$$ORIGIN/../compiler.libs' $<TARGET_FILE:pybind>
             COMMENT "Updating pybind to use packaged GCC 11 libraries")
     endif()
 endif()
